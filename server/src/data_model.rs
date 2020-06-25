@@ -139,7 +139,7 @@ impl SharedClient {
         Ok(())
     }
 
-    // TODO: This should really be "replace".
+    // TODO: This should really be "replace".  Pretty much useless without transaction support, at the moment.
     pub async fn insert_similarities<'a, I>(&self, similarities: I) -> Void where I: IntoIterator<Item = &'a Similarity> {
         let documents = similarities.into_iter().map(|s|
             doc! {
