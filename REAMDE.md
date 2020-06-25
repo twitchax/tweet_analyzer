@@ -109,6 +109,16 @@ twitter_handles = [
 ]
 ```
 
+### Build
+
+```bash
+docker build -t tweet-analyzer .
+```
+
+### Tests
+
+Not yet.
+
 ## Conclusions
 
 ## License
