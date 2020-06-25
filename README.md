@@ -59,7 +59,7 @@ Each document's set of shingles, `D_d`, is then minhashed for each item of a set
 S_d = [ min(H_0(D_d)), min(H_1(D_d)), ..., min(H_N(D_d)) ]
 ```
 
-for every document, `d`, in `D`, where `N` is the _signature length_.
+for every document, `D_d`, in `D`, where `N` is the _signature length_.
 
 As stated above, comparing the signatures of two documents (e.g., `D_40` and `D_45`) is _approximately equivalent_ to the Jaccard Similarity between the w-shingle set of each of those documents.  This assertion forms the basis for the entire analysis.
 
