@@ -1,0 +1,26 @@
+{
+  "name": "client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "tsc && polymer serve",
+    "build": "tsc && polymer build --bundle"
+  },
+  "author": "Aaron Roney",
+  "license": "MIT",
+  "dependencies": {
+    "@types/d3": "^5.7.2",
+    "@webcomponents/webcomponentsjs": "^2.4.3",
+    "d3": "^5.16.0",
+    "lit-element": "^2.3.1"
+  },
+  "devDependencies": {
+    "rollup": "^2.16.1",
+    "rollup-plugin-typescript": "^1.0.1",
+    "tslib": "^2.0.0",
+    "typescript": "^3.9.5",
+    "tslint": "^6.1.2"
+  }
+}

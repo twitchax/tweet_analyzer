@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "rootDir": "src",
+        "outDir": "./buildts/",
+        
+        "target": "es6",
+        "module": "esnext",
+        "moduleResolution": "node",
+        
+        "experimentalDecorators": true,
+        "declaration": true,
+        "sourceMap": true,
+        "pretty": true,
+        "strict": true,
+
+        "lib": [
+            "esnext",
+            "dom"
+        ]
+    }, 
+
+    "include": [
+        "src/**/*.ts"
+    ]
+}

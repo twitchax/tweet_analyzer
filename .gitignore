@@ -1,0 +1,6 @@
+.hidden/
+.vscode/
+node_modules/
+target/
+build/
+buildts/
