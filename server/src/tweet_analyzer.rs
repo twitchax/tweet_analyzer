@@ -6,10 +6,15 @@ use crate::data_model::{SharedClient, Shingle};
 use crate::helpers::{self, Void, Config};
 use crate::mhs::Mhs;
 
-pub fn start(config: &Config, mongo_client: &SharedClient, mut analyze_tweets_rx: mpsc::UnboundedReceiver<String>, signature_ready_tx: &mpsc::UnboundedSender<String>) {
+pub fn start(
+    config: &Config,
+    mongo_client: &SharedClient,
+    mut analyze_tweets_rx: mpsc::UnboundedReceiver<String>,
+    signature_ready_tx: &mpsc::UnboundedSender<String>
+) {
     let mongo_client_clone = mongo_client.clone();
     let signature_ready_tx_clone = signature_ready_tx.clone();
-
+    
     let min_shingle_size = config.min_shingle_size;
     let max_shingle_size = config.max_shingle_size;
     let num_shingles_evaluated = config.num_shingles_evaluated;
@@ -39,13 +44,18 @@ pub fn start(config: &Config, mongo_client: &SharedClient, mut analyze_tweets_rx
     });
 }
 
-async fn update_tweet_shingles_for(handle: &str, mongo_client: &SharedClient, max_shingle_size: usize) -> Void {
+async fn update_tweet_shingles_for(
+    handle: &str,
+    mongo_client: &SharedClient,
+    max_shingle_size: usize
+) -> Void {
     info!("[{}] Updating shingles.", handle);
 
     let tweets = mongo_client.get_tweets_for(handle).await?;
     let mut shingle_map: HashMap<String, u32> = HashMap::with_capacity(100000);
 
     // Get all shingles and their counts.
+    // This looks like it could be slow, but it is pretty fast (sub 1 second).
     for tweet in tweets {
         for shingle in helpers::get_shingles_up_to_size(&tweet.polished_text, max_shingle_size) {
             if let Some(count) = shingle_map.get_mut(&shingle) {
@@ -56,26 +66,33 @@ async fn update_tweet_shingles_for(handle: &str, mongo_client: &SharedClient, ma
         }
     }
 
-    // The map was for fast lookup to get aggregates.  Now, convert to vector.
+    // The map was for fast lookup to get aggregates.  Now, convert to iterator.
     let shingles = shingle_map.into_iter().map(|(k, v)| {
         let length = k.chars().filter(|c| c == &' ').count() + 1;
 
         Shingle { text: k, length: length as u32, count: v }
-    }).collect::<Vec<Shingle>>();
+    });
     
     // Insert shingles into database.
-    mongo_client.replace_shingles_for(handle, &shingles).await.unwrap();
+    mongo_client.replace_shingles_for(handle, shingles).await?;
 
     Ok(())
 }
 
-async fn update_signature_for(handle: &str, mongo_client: &SharedClient, min_shingle_size: usize, max_shingle_size: usize, num_shingles_evaluated: usize, signature_length: usize) -> Void {
+async fn update_signature_for(
+    handle: &str,
+    mongo_client: &SharedClient,
+    min_shingle_size: usize,
+    max_shingle_size: usize,
+    num_shingles_evaluated: usize,
+    signature_length: usize
+) -> Void {
     info!("[{}] Computing signature.", handle);
 
     let shingles = mongo_client.get_shingles_for(handle, min_shingle_size, max_shingle_size, num_shingles_evaluated).await?;
 
-    let signature = Mhs::new(signature_length).get_signature(shingles.iter().map(|s| &s.text[..]));
-    
+    let signature = Mhs::new(signature_length).get_signature(shingles.iter().map(|s| s.text.as_str()));
+
     mongo_client.replace_signature_for(handle, signature).await?;
 
     Ok(())

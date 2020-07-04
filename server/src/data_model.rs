@@ -76,7 +76,9 @@ impl SharedClient {
         Ok(Self { client })
     }
 
-    pub async fn insert_tweets<'a, I>(&self, tweets: I) -> Void where I: IntoIterator<Item = &'a Tweet> {
+    pub async fn insert_tweets<'a, I>(&self, tweets: I) -> Void
+        where I: IntoIterator<Item = &'a Tweet> 
+    {
         let documents = tweets.into_iter().map(|t|
             doc! {
                 "_id": t.id,
@@ -95,7 +97,9 @@ impl SharedClient {
         Ok(())
     }
 
-    pub async fn replace_shingles_for<'a, I>(&self, user_handle: &str, shingles: I) -> Void where I: IntoIterator<Item = &'a Shingle> {
+    pub async fn replace_shingles_for<I>(&self, user_handle: &str, shingles: I) -> Void
+        where I: IntoIterator<Item = Shingle>
+    {
         let documents: Vec<Document> = shingles.into_iter().map(|s| {
             doc! {
                 "user_handle": user_handle.to_lowercase(),
@@ -140,7 +144,9 @@ impl SharedClient {
     }
 
     // TODO: This should really be "replace".  Pretty much useless without transaction support, at the moment.
-    pub async fn insert_similarities<'a, I>(&self, similarities: I) -> Void where I: IntoIterator<Item = &'a Similarity> {
+    pub async fn insert_similarities<I>(&self, similarities: I) -> Void
+        where I: IntoIterator<Item = Similarity>
+    {
         let documents = similarities.into_iter().map(|s|
             doc! {
                 "source_handle": &s.source_handle,
@@ -221,7 +227,7 @@ impl SharedClient {
         Ok(result)
     }
 
-    pub async fn get_signature_for(&self, user_handle: &str) -> Res<Sig> {
+    pub async fn _get_signature_for(&self, user_handle: &str) -> Res<Sig> {
         let filter = doc! { "user_handle": user_handle.to_lowercase() };
 
         let doc: Option<Document> = self.client.database(DATABASE_NAME).collection("signatures").find_one(filter, None).await?;

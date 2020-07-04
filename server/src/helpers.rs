@@ -1,6 +1,4 @@
 use chrono::prelude::*;
-use log::info;
-use yansi::Paint;
 use serde::Deserialize;
 use std::{
     error::Error, 
@@ -71,79 +69,6 @@ pub fn get_twitter_token(config: &Config) -> Token {
     }
 }
 
-pub fn log_tweet(tweet: &egg_mode::tweet::Tweet) {
-    if let Some(ref user) = tweet.user {
-        info!(
-            "{} (@{}) posted at {}",
-            Paint::blue(&user.name),
-            Paint::bold(Paint::blue(&user.screen_name)),
-            tweet.created_at.with_timezone(&chrono::Local)
-        );
-    }
-
-    if let Some(ref screen_name) = tweet.in_reply_to_screen_name {
-        info!("➜ in reply to @{}", Paint::blue(screen_name));
-    }
-
-    if let Some(ref status) = tweet.retweeted_status {
-        info!("{}", Paint::red("Retweet ➜"));
-        log_tweet(status);
-        return;
-    } else {
-        info!("{}", Paint::green(&tweet.text));
-    }
-
-    if let Some(source) = &tweet.source {
-        info!("➜ via {} ({})", source.name, source.url);
-    }
-
-    if let Some(ref place) = tweet.place {
-        info!("➜ from: {}", place.full_name);
-    }
-
-    if let Some(ref status) = tweet.quoted_status {
-        info!("{}", Paint::red("➜ Quoting the following status:"));
-        log_tweet(status);
-    }
-
-    if !tweet.entities.hashtags.is_empty() {
-        info!("➜ Hashtags contained in the tweet:");
-        for tag in &tweet.entities.hashtags {
-            info!("  {}", tag.text);
-        }
-    }
-
-    if !tweet.entities.symbols.is_empty() {
-        info!("➜ Symbols contained in the tweet:");
-        for tag in &tweet.entities.symbols {
-            info!("  {}", tag.text);
-        }
-    }
-
-    if !tweet.entities.urls.is_empty() {
-        info!("➜ URLs contained in the tweet:");
-        for url in &tweet.entities.urls {
-            if let Some(expanded_url) = &url.expanded_url {
-                info!("  {}", expanded_url);
-            }
-        }
-    }
-
-    if !tweet.entities.user_mentions.is_empty() {
-        info!("➜ Users mentioned in the tweet:");
-        for user in &tweet.entities.user_mentions {
-            info!("  {}", Paint::bold(Paint::blue(&user.screen_name)));
-        }
-    }
-
-    if let Some(ref media) = tweet.extended_entities {
-        info!("➜ Media attached to the tweet:");
-        for info in &media.media {
-            info!("  A {:?}", info.media_type);
-        }
-    }
-}
-
 pub fn polish_text(s: &str) -> String {
     s.trim().to_lowercase().replace(&['(', ')', ',', '\"', '.', '!', ';', ':', '\'', '“', '”', '’', '&', '?', '‘', '—', '–'][..], "")
 }
@@ -170,7 +95,7 @@ pub fn compute_similarity_handles(user_handle1: &str, user_handle2: &str) -> (St
     (handles[0].to_owned(), handles[1].to_owned())
 }
 
-// If I wanted this to be _really_ slick, then this would not use `split`, and it would just pass
+// TODO: If we wanted this to be _really_ slick, then this would not use `split`, and it would just pass
 // back slices into the original string.
 pub fn get_shingles_up_to_size(text: &str, size: usize) -> Vec<String> {
     let mut result = Vec::<String>::with_capacity(100);
@@ -181,7 +106,11 @@ pub fn get_shingles_up_to_size(text: &str, size: usize) -> Vec<String> {
     for k in 0..count {
         for j in 1..(size+1) {
             if k + j < count {
-                let shingle = splits[k..(k+j)].into_iter().fold(String::with_capacity(50), |agg, s| format!("{} {}", agg, s)).trim().to_owned();
+                let shingle = splits[k..(k+j)]
+                    .into_iter()
+                    .fold(String::with_capacity(50), |agg, s| format!("{} {}", agg, s))
+                    .trim().to_owned();
+                    
                 result.push(shingle);
             }
         }

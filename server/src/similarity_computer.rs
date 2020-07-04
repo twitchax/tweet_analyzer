@@ -17,7 +17,11 @@ use crate::helpers::{
     GenericError
 };
 
-pub fn start(mongo_client: &SharedClient, mut signature_ready_rx: mpsc::UnboundedReceiver<String>, similarities_ready_tx: &mpsc::UnboundedSender<String>) {
+pub fn start(
+    mongo_client: &SharedClient,
+    mut signature_ready_rx: mpsc::UnboundedReceiver<String>,
+    similarities_ready_tx: &mpsc::UnboundedSender<String>
+) {
     let mongo_client_clone = mongo_client.clone();
     let similarities_ready_tx_clone = similarities_ready_tx.clone();
 
@@ -37,7 +41,10 @@ pub fn start(mongo_client: &SharedClient, mut signature_ready_rx: mpsc::Unbounde
     });
 }
 
-async fn update_similarities_for(handle: &str, mongo_client: &SharedClient) -> Void {
+async fn update_similarities_for(
+    handle: &str,
+    mongo_client: &SharedClient
+) -> Void {
     info!("[{}] Computing similarities.", handle);
 
     let signatures = mongo_client.get_all_signatures().await?;
@@ -58,7 +65,7 @@ async fn update_similarities_for(handle: &str, mongo_client: &SharedClient) -> V
         return Err(Box::new(GenericError::from(format!("Could not find signature for handle {}.", handle))));
     }
 
-    mongo_client.insert_similarities(&similarities).await?;
+    mongo_client.insert_similarities(similarities).await?;
 
     Ok(())
 }

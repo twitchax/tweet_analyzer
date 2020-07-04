@@ -21,7 +21,12 @@ use crate::helpers::{
     Void
 };
 
-pub fn start(twitter_token: &Token, mongo_client: &SharedClient, mut process_handle_rx: mpsc::UnboundedReceiver<String>, analyze_tweets_tx: &mpsc::UnboundedSender<String>) {
+pub fn start(
+    twitter_token: &Token,
+    mongo_client: &SharedClient,
+    mut process_handle_rx: mpsc::UnboundedReceiver<String>,
+    analyze_tweets_tx: &mpsc::UnboundedSender<String>
+) {
     let twitter_token_clone = twitter_token.clone();
     let mongo_client_clone = mongo_client.clone();
     let analyze_tweets_tx_clone = analyze_tweets_tx.clone();
@@ -43,7 +48,11 @@ pub fn start(twitter_token: &Token, mongo_client: &SharedClient, mut process_han
     });
 }
 
-async fn get_and_save_tweets_for(handle: &str, twitter_token: &Token, mongo_client: &SharedClient) -> Void {
+async fn get_and_save_tweets_for(
+    handle: &str,
+    twitter_token: &Token,
+    mongo_client: &SharedClient
+) -> Void {
     info!("[{}] Getting tweets.", handle);
 
     // First, see if this handle already has tweets.

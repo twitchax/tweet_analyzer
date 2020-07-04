@@ -18,7 +18,6 @@ use crate::helpers::{
 };
 
 struct RocketState {
-    config: Config,
     mongo_client: SharedClient
 }
 
@@ -29,7 +28,7 @@ pub async fn start(config: Config) -> Void {
         .finalize().unwrap();
 
     let mongo_client = SharedClient::new(&config.mongo_endpoint).await?;
-    let state = RocketState { config, mongo_client };
+    let state = RocketState { mongo_client };
 
     rocket::custom(rocket_config)
         .manage(state)

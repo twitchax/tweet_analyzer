@@ -35,7 +35,9 @@ impl Mhs {
         Self { randoms }
     }
 
-    pub fn get_signature<'a, I>(&self, shingles: I) -> Sig where I: IntoIterator<Item = &'a str> {
+    pub fn get_signature<'a, I>(&self, shingles: I) -> Sig 
+        where I: IntoIterator<Item = &'a str>
+    {
         let length = self.randoms.len();
         let mut signature = Sig::with_capacity(length);
 
@@ -52,10 +54,6 @@ impl Mhs {
         for shingle in shingles {
             for k in 0..length {
                 let hash = hash(shingle, self.randoms[k]);
-
-                if hash == 0 {
-                    println!("'{}'", shingle.len());
-                }
     
                 if hash < signature[k].min_hash {
                     signature[k] = SigEntry { shingle: shingle.to_owned() , min_hash: hash };
