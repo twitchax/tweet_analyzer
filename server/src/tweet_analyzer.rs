@@ -91,7 +91,7 @@ async fn update_signature_for(
 
     let shingles = mongo_client.get_shingles_for(handle, min_shingle_size, max_shingle_size, num_shingles_evaluated).await?;
 
-    let signature = Mhs::new(signature_length).get_signature(shingles.iter().map(|s| s.text.as_str()));
+    let signature = Mhs::new(signature_length).get_signature(&shingles.iter().map(|s| s.text.as_str()).collect());
 
     mongo_client.replace_signature_for(handle, signature).await?;
 

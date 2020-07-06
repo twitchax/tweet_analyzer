@@ -35,33 +35,28 @@ impl Mhs {
         Self { randoms }
     }
 
-    pub fn get_signature<'a, I>(&self, shingles: I) -> Sig 
-        where I: IntoIterator<Item = &'a str>
+    /// This takes a Vec since we must iterate over it multiple times.
+    /// Might as well allow the caller to specify the best way to get a Vec.
+    pub fn get_signature<'a>(&self, shingles: &Vec<&'a str>) -> Sig
     {
         let length = self.randoms.len();
-        let mut signature = Sig::with_capacity(length);
 
-        // Fill the signature with max values.
-        for _ in 0..length {
-            // TODO: This is bad, since we are creating a bunch of empty strings for no reason.  We can make this an option maybe?
-            // Or, refactor with code.
-            // Yeah, there is another copy down below: we need to be smarter.... :(
-            signature.push(SigEntry { shingle: "".to_owned(), min_hash: u64::MAX });
-        }
+        // Iterate over each hash function and keep the minhash across all shingles.
+        (0..length).into_iter().map(|k| {
+            let mut min_hash = u64::MAX;
+            let mut min_shingle = shingles[0];
 
-        // Iterate over the shingles on the outside since we can only iterate once.
-        // This could be parallelized if needed for efficiency?
-        for shingle in shingles {
-            for k in 0..length {
-                let hash = hash(shingle, self.randoms[k]);
-    
-                if hash < signature[k].min_hash {
-                    signature[k] = SigEntry { shingle: shingle.to_owned() , min_hash: hash };
+            for shingle in shingles {
+                let hash = hash(*shingle, self.randoms[k]);
+
+                if hash < min_hash {
+                    min_hash = hash;
+                    min_shingle = shingle;
                 }
             }
-        }
-        
-        signature
+
+            SigEntry { shingle: min_shingle.to_owned() , min_hash }
+        }).collect()
     }
 }
 
