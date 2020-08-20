@@ -11,15 +11,8 @@ mod tweet_analyzer;
 mod similarity_computer;
 mod web;
 
-// Macros.
-
-use log;
-
 // Imports.
 
-use simple_logger;
-use toml;
-use yansi;
 use tokio::sync::mpsc;
 use log::{
     info, 

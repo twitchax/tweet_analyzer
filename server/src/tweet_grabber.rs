@@ -57,7 +57,7 @@ async fn get_and_save_tweets_for(
 
     // First, see if this handle already has tweets.
     let most_recent_tweet = mongo_client.get_most_recent_tweet_for(handle).await?;
-    let min_id = most_recent_tweet.and_then(|t| Some(t.id));
+    let min_id = most_recent_tweet.map(|t| t.id);
 
     // Get the first timeline struct.
     let timeline = tweet::user_timeline(handle.to_owned(), false /* with_replies */, false /* with retweets */, twitter_token).with_page_size(200);
@@ -90,7 +90,7 @@ async fn get_and_save_tweets_for(
         }
 
         // Update max_id for the next iteration.
-        max_id = tweets.iter().map(|t| t.id).min().and_then(|n| Some(n - 1));
+        max_id = tweets.iter().map(|t| t.id).min().map(|n| n - 1);
 
         // Prepare tweet objects and push into result vector.
         tweets.into_iter().for_each(|t| {
@@ -107,18 +107,18 @@ async fn get_and_save_tweets_for(
             all_tweets.push(data_model::Tweet {
                 id: t.id,
                 user_name: name.to_owned(),
-                user_handle: handle.to_lowercase().to_owned(),
-                user_id: user_id,
+                user_handle: handle.to_lowercase(),
+                user_id,
                 created_at: t.created_at.timestamp(),
                 created_at_string: format!("{}", t.created_at.with_timezone(&chrono::Local)),
                 text: t.text.to_owned(),
-                polished_text: polished_text
+                polished_text
             });
         });
         
     }
 
-    if all_tweets.len() > 0 {
+    if !all_tweets.is_empty() {
         mongo_client.insert_tweets(&all_tweets).await?;
     }
 

@@ -32,12 +32,10 @@ pub fn start(
             let _ = task::spawn(async move {
                 if update_tweet_shingles_for(&handle, &mongo_client_clone2, max_shingle_size).await.is_err() {
                     error!("[{}] Failed to get or store shingles.", handle);
-                } else {
-                    if update_signature_for(&handle, &mongo_client_clone2, min_shingle_size, max_shingle_size, num_shingles_evaluated, signature_length).await.is_err() {
-                        error!("[{}] Failed to get or store signature.", handle);
-                    } else if let Err(e) = signature_ready_tx_clone2.send(handle.to_owned()) {
-                        error!("[{}] Failed to send on `signature_ready_tx`: {}", handle, e);
-                    }
+                } else if update_signature_for(&handle, &mongo_client_clone2, min_shingle_size, max_shingle_size, num_shingles_evaluated, signature_length).await.is_err() {
+                    error!("[{}] Failed to get or store signature.", handle);
+                } else if let Err(e) = signature_ready_tx_clone2.send(handle.to_owned()) {
+                    error!("[{}] Failed to send on `signature_ready_tx`: {}", handle, e);
                 }
             });
         }
@@ -91,7 +89,7 @@ async fn update_signature_for(
 
     let shingles = mongo_client.get_shingles_for(handle, min_shingle_size, max_shingle_size, num_shingles_evaluated).await?;
 
-    let signature = Mhs::new(signature_length).get_signature(&shingles.iter().map(|s| s.text.as_str()).collect());
+    let signature = Mhs::new(signature_length).get_signature(&shingles.iter().map(|s| s.text.as_str()).collect::<Vec<&str>>());
 
     mongo_client.replace_signature_for(handle, signature).await?;
 

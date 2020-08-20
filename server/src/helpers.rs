@@ -44,8 +44,8 @@ pub fn slice_to_u64_le(data: &[u8]) -> u64 {
 
     let mut result = 0;
     let mut shift = 0;
-    for k in 0..data.len() {
-        result += (data[k] as u64) << shift;
+    for d in data {
+        result += (*d as u64) << shift;
         shift += 8;
     }
     
@@ -90,7 +90,7 @@ pub fn compute_similarity_strength(sig1: &Sig, sig2: &Sig) -> f64 {
 
 pub fn compute_similarity_handles(user_handle1: &str, user_handle2: &str) -> (String, String) {
     let mut handles = [user_handle1, user_handle2];
-    handles.sort();
+    handles.sort_unstable();
 
     (handles[0].to_owned(), handles[1].to_owned())
 }
@@ -107,7 +107,7 @@ pub fn get_shingles_up_to_size(text: &str, size: usize) -> Vec<String> {
         for j in 1..(size+1) {
             if k + j < count {
                 let shingle = splits[k..(k+j)]
-                    .into_iter()
+                    .iter()
                     .fold(String::with_capacity(50), |agg, s| format!("{} {}", agg, s))
                     .trim().to_owned();
                     

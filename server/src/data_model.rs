@@ -21,7 +21,7 @@ use crate::helpers::{
     GenericError
 };
 
-static DATABASE_NAME: &'static str = "tweet_analyzer";
+static DATABASE_NAME: &str = "tweet_analyzer";
 
 #[derive(Serialize)]
 pub struct Shingle {
@@ -240,12 +240,12 @@ impl SharedClient {
 
         let signature_array: &bson::Array = unwrapped_doc.get("signature").and_then(Bson::as_array).unwrap();
 
-        let result: Sig = signature_array.into_iter().map(|entry| {
+        let result: Sig = signature_array.iter().map(|entry| {
             let e = entry.as_document().unwrap();
             let shingle = e.get("shingle").and_then(Bson::as_str).unwrap_or("Unknown").to_owned();
             let min_hash = e.get("min_hash").and_then(Bson::as_i64).unwrap_or(0) as u64;
 
-            return SigEntry { shingle, min_hash };
+            SigEntry { shingle, min_hash }
         }).collect();
 
         Ok(result)
@@ -261,12 +261,12 @@ impl SharedClient {
                 let user_handle = doc.get("user_handle").and_then(Bson::as_str).unwrap_or("Unknown").to_owned();
                 let signature_array: &bson::Array = doc.get("signature").and_then(Bson::as_array).unwrap();
 
-                let sig: Sig = signature_array.into_iter().map(|entry| {
+                let sig: Sig = signature_array.iter().map(|entry| {
                     let e = entry.as_document().unwrap();
                     let shingle = e.get("shingle").and_then(Bson::as_str).unwrap_or("Unknown").to_owned();
                     let min_hash = e.get("min_hash").and_then(Bson::as_i64).unwrap_or(0) as u64;
 
-                    return SigEntry { shingle, min_hash };
+                    SigEntry { shingle, min_hash }
                 }).collect();
 
                 result.push(Signature { user_handle, signature: sig });

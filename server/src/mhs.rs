@@ -37,7 +37,7 @@ impl Mhs {
 
     /// This takes a Vec since we must iterate over it multiple times.
     /// Might as well allow the caller to specify the best way to get a Vec.
-    pub fn get_signature<'a>(&self, shingles: &Vec<&'a str>) -> Sig
+    pub fn get_signature(&self, shingles: &[&str]) -> Sig
     {
         let length = self.randoms.len();
 
