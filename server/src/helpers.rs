@@ -14,9 +14,6 @@ use egg_mode::{
 
 use crate::data_model::Sig;
 
-pub type Void = Result<(), Box<dyn std::error::Error>>;
-pub type Res<T> = Result<T, Box<dyn std::error::Error>>;
-
 #[derive(Deserialize, Clone)]
 pub struct Config {
     pub server_port: u16,
@@ -119,20 +116,31 @@ pub fn get_shingles_up_to_size(text: &str, size: usize) -> Vec<String> {
     result
 }
 
+pub type Void = Result<(), Box<dyn std::error::Error>>;
+pub type Res<T> = Result<T, Box<dyn std::error::Error>>;
+
+pub trait IntoError<T> {
+    fn into_error(self) -> Res<T>;
+}
+
+impl<T, S> IntoError<T> for S 
+    where S: AsRef<str> + ToString
+{
+    fn into_error(self) -> Res<T> {
+        Err(Box::new(GenericError::from(self)))
+    }
+}
+
 #[derive(Debug)]
 pub struct GenericError {
     message: String
 }
 
-impl From<&str> for GenericError {
-    fn from(message: &str) -> Self {
-        GenericError { message: message.to_owned() }
-    }
-}
-
-impl From<String> for GenericError {
-    fn from(message: String) -> Self {
-        GenericError { message }
+impl<T> From<T> for GenericError 
+    where T: AsRef<str> + ToString 
+{
+    fn from(message: T) -> Self {
+        GenericError { message: message.to_string() }
     }
 }
 
