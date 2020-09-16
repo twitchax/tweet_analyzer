@@ -70,6 +70,7 @@ pub fn polish_text(s: &str) -> String {
     s.trim().to_lowercase().replace(&['(', ')', ',', '\"', '.', '!', ';', ':', '\'', '“', '”', '’', '&', '?', '‘', '—', '–'][..], "")
 }
 
+#[allow(clippy::ptr_arg)]
 pub fn compute_similarity_strength(sig1: &Sig, sig2: &Sig) -> f64 {
     assert!(sig1.len() == sig2.len(), "The signatures do not have the same length");
 
