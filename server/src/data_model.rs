@@ -76,6 +76,16 @@ impl SharedClient {
         Ok(Self { client })
     }
 
+    pub async fn wait_for_ready(&self) {
+        loop {
+            if self.client.list_database_names(None, None).await.is_ok() {
+                break;
+            } else {
+                tokio::time::delay_for(tokio::time::Duration::from_secs(1)).await;
+            }
+        }
+    }
+
     pub async fn insert_tweets<'a, I>(&self, tweets: I) -> Void
         where I: IntoIterator<Item = &'a Tweet> 
     {

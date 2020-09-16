@@ -38,7 +38,7 @@ pub fn start(
             let analyze_tweets_tx_clone2 = analyze_tweets_tx_clone.clone();
             
             let _ = task::spawn(async move {
-                if let Err(e) = get_and_save_tweets_for(&handle[..], &twitter_token_clone2, &mongo_client_clone2).await {
+                if let Err(e) = get_and_save_tweets_for(&handle, &twitter_token_clone2, &mongo_client_clone2).await {
                     error!("[{}] Failed to get or store tweets: {}", handle, e);
                 } else if let Err(e) = analyze_tweets_tx_clone2.send(handle.to_owned()) {
                     error!("[{}] Failed to send on `analyze_tweets_tx`: {}", handle, e);

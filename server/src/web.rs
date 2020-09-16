@@ -21,13 +21,12 @@ struct RocketState {
     mongo_client: SharedClient
 }
 
-pub async fn start(config: Config) -> Void {
+pub async fn start(config: Config, mongo_client: SharedClient) -> Void {
     let static_location = config.static_location.to_owned();
     let rocket_config = rocket::config::Config::build(rocket::config::Environment::Staging)
         .port(config.server_port)
         .finalize().unwrap();
 
-    let mongo_client = SharedClient::new(&config.mongo_endpoint).await?;
     let state = RocketState { mongo_client };
 
     rocket::custom(rocket_config)

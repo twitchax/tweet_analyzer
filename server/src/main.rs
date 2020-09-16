@@ -1,5 +1,4 @@
 #![warn(rust_2018_idioms, clippy::all)]
-#![feature(proc_macro_hygiene, decl_macro)]
 
 // Modules.
 
@@ -31,9 +30,14 @@ use helpers::{
 
 #[tokio::main]
 async fn main() -> Void {
-    let args: Vec<String> = std::env::args().collect();
-    
+    // Set up logging.
+
+    simple_logger::init().unwrap();
+    log::set_max_level(LevelFilter::Info);
+
     // Ingest config.
+
+    let args: Vec<String> = std::env::args().collect();
 
     let config = if args.len() == 2 {
         let config_file = args[1].to_owned();
@@ -45,32 +49,34 @@ async fn main() -> Void {
         panic!("This executable requires that a config file be passed in.");
     };
 
-    // Set up logging.
+    // Wait for database to come up.
 
-    simple_logger::init().unwrap();
-    log::set_max_level(LevelFilter::Info);
+    let mongo_client = SharedClient::new(&config.mongo_endpoint).await?;
+    info!("Waiting for database ...");
+    mongo_client.wait_for_ready().await;
+    info!("Ready!");
 
     // Kick off analyzer.
 
     if config.with_analyzer {
         let config_clone = config.clone();
+        let mongo_client_clone = mongo_client.clone();
 
         tokio::task::spawn(async move {
-            start_analyzer(&config_clone).await.unwrap();
+            start_analyzer(&config_clone, mongo_client_clone).await.unwrap();
         });
     }
 
     // Start rocket server.
 
-    web::start(config).await?;
+    web::start(config, mongo_client).await?;
 
     Ok(())
 }
 
-async fn start_analyzer(config: &Config) -> Void {
+async fn start_analyzer(config: &Config, mongo_client: SharedClient) -> Void {
     let twitter_token = helpers::get_twitter_token(&config);
-    let mongo_client = SharedClient::new(&config.mongo_endpoint).await?;
-
+    
     // We can make these bounded, if needed.
     let (process_handle_tx, process_handle_rx) = mpsc::unbounded_channel::<String>();
     let (analyze_tweets_tx, analyze_tweets_rx) = mpsc::unbounded_channel::<String>();

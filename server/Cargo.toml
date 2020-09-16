@@ -20,5 +20,5 @@ futures = "0.3.5"
 rand = "0.7.3"
 serde = "1.0.111"
 toml = "0.5.6"
-rocket = { git = "https://github.com/SergioBenitez/Rocket.git", branch = "async" }
-rocket_contrib = { git = "https://github.com/SergioBenitez/Rocket.git", branch = "async" }
+rocket = { git = "https://github.com/SergioBenitez/Rocket.git", branch = "master" }
+rocket_contrib = { git = "https://github.com/SergioBenitez/Rocket.git", branch = "master" }

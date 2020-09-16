@@ -14,7 +14,7 @@ use egg_mode::{
 
 use crate::data_model::Sig;
 
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct Config {
     pub server_port: u16,
     pub static_location: String,
