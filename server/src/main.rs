@@ -9,6 +9,7 @@ mod tweet_grabber;
 mod tweet_analyzer;
 mod similarity_computer;
 mod web;
+mod memory_trimmer;
 
 // Imports.
 
@@ -86,6 +87,10 @@ async fn start_analyzer(config: &Config, mongo_client: SharedClient) -> Void {
     tweet_grabber::start(&twitter_token, &mongo_client, process_handle_rx, &analyze_tweets_tx);
     tweet_analyzer::start(&config, &mongo_client, analyze_tweets_rx, &signature_ready_tx);
     similarity_computer::start(&mongo_client, signature_ready_rx, &similarities_ready_tx);
+
+    // Run a memory trimmer on linux.
+    #[cfg(target_os = "linux")]
+    memory_trimmer::start();
 
     for handle in &config.twitter_handles {
         let _ = process_handle_tx.send(handle.to_owned());
