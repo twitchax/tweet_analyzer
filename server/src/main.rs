@@ -10,6 +10,7 @@ mod tweet_analyzer;
 mod similarity_computer;
 mod web;
 mod memory_trimmer;
+mod types;
 
 // Imports.
 
@@ -22,12 +23,14 @@ use log::{
 
 use data_model::SharedClient;
 use helpers::{
-    Void, 
+    Void,
+    Res,
     Config
 };
 
 // TODO:
 //   * Make the shingling, and signature writing, a rayon-based operation.
+//   * Example shingle lookup: db.shingles.find({ user_handle: "handle", length: 3 }).sort({ count: -1 }).limit(20).map(o => `[${o.count}] ${o.text}`)
 
 #[tokio::main]
 async fn main() -> Void {
@@ -59,23 +62,16 @@ async fn main() -> Void {
 
     // Kick off analyzer.
 
-    if config.with_analyzer {
-        let config_clone = config.clone();
-        let mongo_client_clone = mongo_client.clone();
-
-        tokio::task::spawn(async move {
-            start_analyzer(&config_clone, mongo_client_clone).await.unwrap();
-        });
-    }
+    let process_handle_tx = start_analyzer(&config, &mongo_client)?;
 
     // Start rocket server.
 
-    web::start(config, mongo_client).await?;
+    web::start(&config, &mongo_client, &process_handle_tx).await?;
 
     Ok(())
 }
 
-async fn start_analyzer(config: &Config, mongo_client: SharedClient) -> Void {
+fn start_analyzer(config: &Config, mongo_client: &SharedClient) -> Res<types::HandleSender> {
     let twitter_token = helpers::get_twitter_token(&config);
     
     // We can make these bounded, if needed.
@@ -92,14 +88,18 @@ async fn start_analyzer(config: &Config, mongo_client: SharedClient) -> Void {
     #[cfg(target_os = "linux")]
     memory_trimmer::start();
 
-    for handle in &config.twitter_handles {
-        let _ = process_handle_tx.send(handle.to_owned());
+    if let Some(handles) = &config.twitter_handles {
+        for handle in handles {
+            let _ = process_handle_tx.send(handle.to_owned());
+        }
     }
     
-    while let Some(handle) = similarities_ready_rx.recv().await {
-        info!("Similarities ready for {}.", yansi::Paint::green(handle));
-    }
+    tokio::task::spawn(async move {
+        while let Some(handle) = similarities_ready_rx.recv().await {
+            info!("Similarities ready for {}.", yansi::Paint::green(handle));
+        }
+    });
 
-    Ok(())
+    Ok(process_handle_tx)
 }
 

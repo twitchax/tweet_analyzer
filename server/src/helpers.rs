@@ -19,8 +19,6 @@ pub struct Config {
     pub server_port: u16,
     pub static_location: String,
 
-    pub with_analyzer: bool,
-
     pub twitter_consumer_key: String,
     pub twitter_consumer_secret: String,
     pub twitter_access_token: String,
@@ -33,7 +31,7 @@ pub struct Config {
     pub max_shingle_size: usize,
     pub num_shingles_evaluated: usize,
 
-    pub twitter_handles: Vec<String>,
+    pub twitter_handles: Option<Vec<String>>,
 }
 
 pub fn slice_to_u64_le(data: &[u8]) -> u64 {
