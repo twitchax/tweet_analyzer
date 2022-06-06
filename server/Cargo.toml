@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 tokio = { version = "0.2.21", features = ["full"] }
 egg-mode = "0.14.0"
-time = "0.2.9"
+time = "0.2.23"
 log = { version = "0.4.8", features = ["release_max_level_info"] }
 simple_logger = "1.0.1"
 chrono = "0.4.11"
